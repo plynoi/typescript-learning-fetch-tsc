@@ -18,7 +18,7 @@ Since it is still an experimental feature, so it is advisable to test it in a co
 
 ## <a id="demo"></a>Demo Project
 
-This demo project is a simple console application that requests an anonymous Far-right quote message from [@narze](https://twitter.com/narze)'s [Awesome Salim Quotes](https://watasalim.vercel.app/) application and API using the Node v17.50's native Fetch API. The application is written in [TypeScript](https://www.typescriptlang.org/), then compile  to Node.js compatible JavaScript with the [Typescript TSC](https://www.typescriptlang.org/docs/handbook/compiler-options.html). 
+This demo project is a simple console application that requests an anonymous Far-right quote message from [@narze](https://twitter.com/narze)'s [Awesome Salim Quotes](https://watasalim.vercel.app/) application and API using the Node v17.50's native Fetch API. The application is written in [TypeScript](https://www.typescriptlang.org/), then compile to Node.js compatible JavaScript with the [Typescript TSC](https://www.typescriptlang.org/docs/handbook/compiler-options.html). 
 
 ![Figure-1](images/01_console_result.png "app basic result") 
 
@@ -29,6 +29,50 @@ If you want to see the same project with the [Webpack](https://webpack.js.org/),
 ## <a id="dev_detail"></a>Development Detail
 
 According to this [Stack Overflow post](https://stackoverflow.com/questions/70309135/chalk-error-err-require-esm-require-of-es-module), the version 5 of the [chalk library](https://www.npmjs.com/package/chalk) has changed to [ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) and somehow it breaks TypeScript 😫😫😫. The workaround is using Chalk 4 instead.
+
+The target JavaScript file is compiled only, not bundle (like that Webpack does), so I choose to install running dependencies in the Docker 2nd stage as ```--product```. 
+
+Dockerfile - [Webpack](https://github.com/plynoi/typescript-learning-fetch-webpack) :
+
+```
+# 2nd stage for running the application
+FROM node:17.5.0-alpine
+
+# Create app directory
+WORKDIR /app
+# Copy the bundle file and run script
+COPY --from=compiler /app/dist ./dist
+#COPY --from=builder /app/node_modules ./node_modules
+
+#CMD [ "node", "--experimental-fetch", "./dist/rdp_nodefetch.js"]
+ENTRYPOINT [ "node" ,"--experimental-fetch","./dist/main.js"]
+```
+
+This Dockerfile:
+
+```
+FROM node:17.5.0-alpine
+
+# Create app directory
+WORKDIR /app
+# Copy configuration files
+COPY --from=compiler /app/package*.json .
+COPY --from=compiler /app/tsconfig.json .
+
+#RUN npm install
+RUN npm install -g npm@8.7.0 \
+    && npm ci --production\
+    && npm cache clean --force
+
+# Copy the bundle file and run script
+COPY --from=compiler /app/dist ./dist
+#COPY --from=builder /app/node_modules ./node_modules
+
+#CMD [ "node", "--experimental-fetch", "./dist/rdp_nodefetch.js"]
+ENTRYPOINT [ "node" ,"--experimental-fetch","./dist/main.js"]
+```
+
+I am not sure if this is the correct way, but it is my workaround for now 😅😅. The Image size difference is 9MB. 
 
 ## <a id="single_vs_multi"></a>Single-Stage Build vs Multi-Stage Builds
 
