@@ -9,7 +9,7 @@
 
 import yargs from 'yargs/yargs'
 import { hideBin } from 'yargs/helpers'
-//import chalk from 'chalk'
+import chalk from 'chalk'
 
 const apiURL: string = process.env.BASE_URL || 'https://watasalim.vercel.app'
 
@@ -67,8 +67,8 @@ const main = async() =>{
         const salimQuote = await sendHTTPRequest(url)
         console.log(JSON.stringify(salimQuote))
 
-        //console.log(chalk.yellow.bold(`Salim said ${salimQuote['quote']['body']}`))
-        console.log(`Salim said ${salimQuote['quote']['body']}`)
+        console.log(chalk.yellow.bold(`Salim said ${salimQuote['quote']['body']}`))
+        //console.log(`Salim said ${salimQuote['quote']['body']}`)
         console.log(`Powered by ${salimQuote['quote']['url']}`)
 
     }catch(error){
@@ -78,5 +78,3 @@ const main = async() =>{
 }
 
 main()
-
-import chalk from 'chalk'
